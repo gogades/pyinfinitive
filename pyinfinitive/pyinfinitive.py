@@ -34,7 +34,7 @@ class infinitive_device:
         """Get config status from infinitive."""
         status_raw = requests.get(self.config_url)
         if status_raw.status_code != 404:
-            status = json.loads(status_raw.content)
+            status = json.loads(status_raw.content.decode('utf-8'))
             return status
         else:
             return {}
@@ -43,7 +43,7 @@ class infinitive_device:
         """Get airhandler status from an infinitive device."""
         status_raw = requests.get(self.airhandler_url)
         if status_raw.status_code != 404:
-            status = json.loads(status_raw.content)
+            status = json.loads(status_raw.content.decode('utf-8'))
             return status
         else:
             return {}
@@ -52,7 +52,7 @@ class infinitive_device:
         """Get config status from infinitive."""
         status_raw = requests.get(self.vacation_url)
         if status_raw.status_code != 404:
-            status = json.loads(status_raw.content)
+            status = json.loads(status_raw.content.decode('utf-8'))
             return status
         else:
             return {}
