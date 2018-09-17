@@ -11,6 +11,7 @@ setuptools.setup(
     description="An API wrapper for the Infinitive project.",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    url="https://github.com/mww012/pyinfinitive.git",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
