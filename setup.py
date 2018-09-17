@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyinfinitive",
-    version="0.0.1",
+    version="0.0.2",
     author="Michael Wood",
     author_email="mww012@gmail.com",
     description="An API wrapper for the Infinitive project.",
