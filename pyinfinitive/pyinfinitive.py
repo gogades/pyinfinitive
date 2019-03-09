@@ -1,4 +1,5 @@
 import requests
+from requests.adapters import HTTPAdapter
 import json
 
 
@@ -23,9 +24,10 @@ class infinitive_device:
             'Content-Type': "application/json",
             'Accept': "application/json"
         }
-		self.base_url = 'http://' + str(ip) + ':' + str(port)
+        self.base_url = 'http://' + str(ip) + ':' + str(port)
         self.config_url = self.base_url + '/api/zone/1/config'
         self.airhandler_url = self.base_url + '/api/airhandler'
+        self.heatpump_url = self.base_url + '/api/heatpump'
         self.vacation_url = self.base_url + '/api/zone/1/vacation'
 
     def _get_configstatus(self):
@@ -48,6 +50,16 @@ class infinitive_device:
         else:
             return {}
 
+    def _get_heatpumpstatus(self):
+        """Get heatpump status from an infinitive device."""
+        status_raw = requests.get(self.heatpump_url)
+        if status_raw.status_code != 404:
+            status = json.loads(status_raw.content.decode('utf-8'))
+            heatstatus = {f'heatpump_{k}':v for (k,v) in status.items()}
+            return heatstatus
+        else:
+            return {}
+
     def get_vacationstatus(self):
         """Get config status from infinitive."""
         status_raw = requests.get(self.vacation_url)
@@ -61,8 +73,9 @@ class infinitive_device:
         """Return current status of an infinitive device."""
         configstatus = self._get_configstatus()
         handlerstatus = self._get_airhandlerstatus()
-
-        mergedstatus = dict(**configstatus, **handlerstatus)
+        heatpumpstatus = self._get_heatpumpstatus()
+        
+        mergedstatus = {**configstatus, **heatpumpstatus, **handlerstatus}
         return mergedstatus
 
     def set_temp(self, target_temp, mode):
