@@ -30,7 +30,7 @@ class infinitive_device:
         self.heatpump_url = self.base_url + '/api/heatpump'
         self.vacation_url = self.base_url + '/api/zone/1/vacation'
 
-    def _get_statusfromurl(self, url, prefix):
+    def _get_configstatus(self, url, prefix):
         """Get config status from infinitive."""
         session = requests.Session()
         session.mount(self.base_url, HTTPAdapter(max_retries=5))
@@ -41,16 +41,19 @@ class infinitive_device:
             return {f'{prefix}{k}':v for (k,v) in status.items()} if len(prefix) > 0 else status
         except:
             return {}
+           
+    def get_vacationstatus(self):
+        """Get config status from infinitive."""
+        return self._get_configstatus(self.vacation_url, '')
             
     def get_status(self):
         """Return current status of an infinitive device."""
-        configstatus = self._get_statusfromurl(self.config_url, '')
-        handlerstatus = self._get_statusfromurl(self.airhandler_url, '')
-        heatpumpstatus = self._get_statusfromurl(self.heatpump_url, 'heatpump_')
+        configstatus = self._get_configstatus(self.config_url, '')
+        handlerstatus = self._get_configstatus(self.airhandler_url, '')
+        heatpumpstatus = self._get_configstatus(self.heatpump_url, 'heatpump_')
         
-        mergedstatus = {**configstatus, **heatpumpstatus, **handlerstatus}
-        return mergedstatus
-
+        return {**configstatus, **heatpumpstatus, **handlerstatus}
+        
     def set_temp(self, target_temp, mode):
         """
         Set target temperature.
