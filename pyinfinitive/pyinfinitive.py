@@ -30,50 +30,23 @@ class infinitive_device:
         self.heatpump_url = self.base_url + '/api/heatpump'
         self.vacation_url = self.base_url + '/api/zone/1/vacation'
 
-    def _get_configstatus(self):
+    def _get_statusfromurl(self, url, prefix):
         """Get config status from infinitive."""
         session = requests.Session()
         session.mount(self.base_url, HTTPAdapter(max_retries=5))
-        status_raw = session.get(self.config_url)
-        if status_raw.status_code != 404:
+        status_raw = session.get(url)
+        if status_raw.status_code != 200: return {}
+        try:
             status = json.loads(status_raw.content.decode('utf-8'))
-            return status
-        else:
+            return {f'{prefix}{k}':v for (k,v) in status.items()} if len(prefix) > 0 else status
+        except:
             return {}
-
-    def _get_airhandlerstatus(self):
-        """Get airhandler status from an infinitive device."""
-        status_raw = requests.get(self.airhandler_url)
-        if status_raw.status_code != 404:
-            status = json.loads(status_raw.content.decode('utf-8'))
-            return status
-        else:
-            return {}
-
-    def _get_heatpumpstatus(self):
-        """Get heatpump status from an infinitive device."""
-        status_raw = requests.get(self.heatpump_url)
-        if status_raw.status_code != 404:
-            status = json.loads(status_raw.content.decode('utf-8'))
-            heatstatus = {f'heatpump_{k}':v for (k,v) in status.items()}
-            return heatstatus
-        else:
-            return {}
-
-    def get_vacationstatus(self):
-        """Get config status from infinitive."""
-        status_raw = requests.get(self.vacation_url)
-        if status_raw.status_code != 404:
-            status = json.loads(status_raw.content.decode('utf-8'))
-            return status
-        else:
-            return {}
-
+            
     def get_status(self):
         """Return current status of an infinitive device."""
-        configstatus = self._get_configstatus()
-        handlerstatus = self._get_airhandlerstatus()
-        heatpumpstatus = self._get_heatpumpstatus()
+        configstatus = self._get_statusfromurl(self.config_url, '')
+        handlerstatus = self._get_statusfromurl(self.airhandler_url, '')
+        heatpumpstatus = self._get_statusfromurl(self.heatpump_url, 'heatpump_')
         
         mergedstatus = {**configstatus, **heatpumpstatus, **handlerstatus}
         return mergedstatus
