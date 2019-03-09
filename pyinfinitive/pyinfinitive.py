@@ -23,16 +23,16 @@ class infinitive_device:
             'Content-Type': "application/json",
             'Accept': "application/json"
         }
-        self.config_url = 'http://' + str(ip) + ':' + str(port) + \
-            '/api/zone/1/config'
-        self.airhandler_url = 'http://' + str(ip) + ':' + str(port) + \
-            '/api/airhandler'
-        self.vacation_url = 'http://' + str(ip) + ':' + str(port) + \
-            '/api/zone/1/vacation'
+		self.base_url = 'http://' + str(ip) + ':' + str(port)
+        self.config_url = self.base_url + '/api/zone/1/config'
+        self.airhandler_url = self.base_url + '/api/airhandler'
+        self.vacation_url = self.base_url + '/api/zone/1/vacation'
 
     def _get_configstatus(self):
         """Get config status from infinitive."""
-        status_raw = requests.get(self.config_url)
+        session = requests.Session()
+        session.mount(self.base_url, HTTPAdapter(max_retries=5))
+        status_raw = session.get(self.config_url)
         if status_raw.status_code != 404:
             status = json.loads(status_raw.content.decode('utf-8'))
             return status
