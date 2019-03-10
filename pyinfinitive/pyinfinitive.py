@@ -1,4 +1,5 @@
 import requests
+from requests.adapters import HTTPAdapter
 import json
 
 
@@ -23,48 +24,36 @@ class infinitive_device:
             'Content-Type': "application/json",
             'Accept': "application/json"
         }
-        self.config_url = 'http://' + str(ip) + ':' + str(port) + \
-            '/api/zone/1/config'
-        self.airhandler_url = 'http://' + str(ip) + ':' + str(port) + \
-            '/api/airhandler'
-        self.vacation_url = 'http://' + str(ip) + ':' + str(port) + \
-            '/api/zone/1/vacation'
+        self.base_url = 'http://' + str(ip) + ':' + str(port)
+        self.config_url = self.base_url + '/api/zone/1/config'
+        self.airhandler_url = self.base_url + '/api/airhandler'
+        self.heatpump_url = self.base_url + '/api/heatpump'
+        self.vacation_url = self.base_url + '/api/zone/1/vacation'
 
-    def _get_configstatus(self):
+    def _get_configstatus(self, url, prefix):
         """Get config status from infinitive."""
-        status_raw = requests.get(self.config_url)
-        if status_raw.status_code != 404:
+        session = requests.Session()
+        session.mount(self.base_url, HTTPAdapter(max_retries=5))
+        status_raw = session.get(url)
+        if status_raw.status_code != 200: return {}
+        try:
             status = json.loads(status_raw.content.decode('utf-8'))
-            return status
-        else:
+            return {f'{prefix}{k}':v for (k,v) in status.items()} if len(prefix) > 0 else status
+        except:
             return {}
-
-    def _get_airhandlerstatus(self):
-        """Get airhandler status from an infinitive device."""
-        status_raw = requests.get(self.airhandler_url)
-        if status_raw.status_code != 404:
-            status = json.loads(status_raw.content.decode('utf-8'))
-            return status
-        else:
-            return {}
-
+           
     def get_vacationstatus(self):
         """Get config status from infinitive."""
-        status_raw = requests.get(self.vacation_url)
-        if status_raw.status_code != 404:
-            status = json.loads(status_raw.content.decode('utf-8'))
-            return status
-        else:
-            return {}
-
+        return self._get_configstatus(self.vacation_url, '')
+            
     def get_status(self):
         """Return current status of an infinitive device."""
-        configstatus = self._get_configstatus()
-        handlerstatus = self._get_airhandlerstatus()
-
-        mergedstatus = dict(**configstatus, **handlerstatus)
-        return mergedstatus
-
+        configstatus = self._get_configstatus(self.config_url, '')
+        handlerstatus = self._get_configstatus(self.airhandler_url, '')
+        heatpumpstatus = self._get_configstatus(self.heatpump_url, 'heatpump_')
+        
+        return {**configstatus, **heatpumpstatus, **handlerstatus}
+        
     def set_temp(self, target_temp, mode):
         """
         Set target temperature.
