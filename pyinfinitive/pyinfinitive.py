@@ -38,7 +38,7 @@ class infinitive_device:
         if status_raw.status_code != 200: return {}
         try:
             status = json.loads(status_raw.content.decode('utf-8'))
-            return {f'{prefix}{k}':v for (k,v) in status.items()} if len(prefix) > 0 else status
+            return {"{}{}".format(prefix,k):v for (k, v) in status.items()} if len(prefix) > 0 else status
         except:
             return {}
            
